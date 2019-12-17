@@ -78,7 +78,8 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
             val result = data?.extras?.getInt("result")
-            txtCalculations.text = result.toString()
+            txtCalculations.text = "Result from flutter module = ${result.toString()}"
+            txtCalculations.setTextColor(resources.getColor(R.color.colorPrimary))
         }
     }
 }
