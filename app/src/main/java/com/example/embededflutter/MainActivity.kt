@@ -23,15 +23,6 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var context: Context
 
-    private val flutterEngine: FlutterEngine by lazy {
-        FlutterEngine(this.applicationContext)
-    }
-
-    private val flutterView: FlutterView by lazy {
-        FlutterView(this.applicationContext)
-    }
-
-    lateinit var platformPlugin: PlatformPlugin
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,15 +34,7 @@ class MainActivity : AppCompatActivity() {
     private fun init() {
         context = this
 
-        flutterEngine.dartExecutor.executeDartEntrypoint(
-            DartExecutor.DartEntrypoint.createDefault()
-        )
 
-        flutterView.attachToFlutterEngine(flutterEngine)
-
-        FlutterEngineCache.getInstance().put(FLUTTER_ENGINE, flutterEngine)
-
-        initMethodChannel()
 
         btnSend.setOnClickListener {
 
@@ -76,51 +59,26 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun initMethodChannel() {
-
-        val channel = MethodChannel(flutterEngine.dartExecutor, FLUTTER_CHANNEL)
-
-        channel.setMethodCallHandler { call, result ->
-            // manage method calls here
-            if (call.method == "FromClientToHost") {
-                val resultStr = call.arguments.toString()
-                val resultJson = JSONObject(resultStr)
-                val res = resultJson.getInt("result")
-                val operation = resultJson.getString("operation")
-
-                val intent = Intent()
-                intent.putExtra("result", res)
-                intent.putExtra("operation", operation)
-                setResult(Activity.RESULT_OK, intent)
-                finish()
-            } else {
-                result.notImplemented()
-                setResult(Activity.RESULT_CANCELED)
-                finish()
-            }
-        }
-
-        platformPlugin =
-            PlatformPlugin(this@MainActivity, PlatformChannel(flutterEngine.dartExecutor))
-
-    }
-
     private fun sendNumbersToFlutter(firstNumber: Int, secondNumber: Int) {
-
         val json = JSONObject()
         json.put("first", firstNumber)
         json.put("second", secondNumber)
-        Handler().postDelayed({
-            MethodChannel(
-                flutterEngine.dartExecutor,
-                FLUTTER_CHANNEL
-            ).invokeMethod("fromHostToClient", json.toString())
-        }, 500)
 
-        startActivity(
-            FlutterActivity.withCachedEngine(FLUTTER_ENGINE).build(
-                context
-            )
+        startActivityForResult(
+            Intent(context, CustomConnection::class.java).putExtra(
+                "data",
+                json.toString()
+            ), 100
         )
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
+            val result = data?.extras?.getInt("result")
+            txtCalculations.text = result.toString()
+        }
     }
 }

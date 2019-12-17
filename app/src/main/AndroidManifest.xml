@@ -18,6 +18,10 @@
         </activity>
 
         <activity android:name="io.flutter.embedding.android.FlutterActivity" />
+
+        <activity android:name=".BridgeActivity"/>
+
+        <activity android:name=".CustomConnection"/>
     </application>
 
 </manifest>
